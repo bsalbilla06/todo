@@ -1,13 +1,17 @@
 package main
 
-import "os"
+import (
+	"fmt"
+	"os"
+)
 
-func GetArg(index int) string {
+// Safer way to get args
+func GetArg(index int) (string, error) {
 	for i, v := range os.Args {
 		if i < index {
 			continue
 		}
-		return v
+		return v, nil
 	}
-	return ""
+	return "", fmt.Errorf("argument index out of range [%v] with length %v", index, len(os.Args))
 }

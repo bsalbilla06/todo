@@ -1,53 +1,51 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
-	"strconv"
 )
 
 func main() {
-	userConfigDir := ConfigDir()
-
-	err := CheckForConfig(userConfigDir)
+	configBytes, err := os.ReadFile(ConfigDir() + "config.json")
 	if err != nil {
-		if err.Error() == "config not found" {
-			CreateConfig(userConfigDir)
+		if err.Error() == fmt.Sprintf("open %v%v: no such file or directory", ConfigDir(), ConfigFile) {
+			configBytes = CreateConfig()
 		} else {
 			panic(err)
 		}
 	}
 
-	configBytes, err := os.ReadFile(userConfigDir + "config.json")
-	if err != nil {
-		panic(err)
-	}
-
-	configData := new(ConfigData)
-	json.Unmarshal(configBytes, configData)
+	configData := GetConfig(configBytes)
 	project := configData.CurrentProject
 
-	command := GetArg(1)
+	command, _ := GetArg(1)
 	switch command {
 	case "new":
-		WriteNewTask(Task{Instruction: GetArg(2), Prioritized: false, Completed: false}, project)
+		instruction, err := GetArg(2)
+		if err != nil {
+			panic(err)
+		}
+		WriteNewTask(Task{Instruction: instruction, Prioritized: false, Completed: false}, project)
 	case "complete":
-		taskID, err := strconv.Atoi(os.Args[2])
+		taskID, err := GetArg(2)
 		if err != nil {
 			panic(err)
 		}
-		CompleteTask(taskID, project)
+		CompleteTask(project, taskID)
 	case "prioritize":
-		taskID, err := strconv.Atoi(GetArg(2))
+		taskID, err := GetArg(2)
 		if err != nil {
 			panic(err)
 		}
-		PrioritizeTask(taskID, project)
+		PrioritizeTask(project, taskID)
 	case "help":
 		fmt.Println(HelpUser())
-	// case "switch":
-	// 	break
+	case "switch":
+		projectName, err := GetArg(2)
+		if err != nil {
+			panic(err)
+		}
+		SwitchProject(projectName, configBytes)
 	// case "delete":
 	// 	break
 	default:

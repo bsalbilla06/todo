@@ -23,6 +23,32 @@ func (t Task) String() []string {
 	return []string{instruction, priority, completed}
 }
 
+func CompleteTask(projectName, arg string) {
+	taskID, err := strconv.Atoi(arg)
+	if err != nil {
+		panic(err)
+	}
+
+	file, err := os.OpenFile(projectName, os.O_WRONLY, 0600)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	w := csv.NewWriter(file)
+
+	tasks := ExtractTasks(projectName)
+	tasks[taskID-1].Completed = true
+	
+	strs := make([][]string, len(tasks))
+	for i := range tasks {
+		strs[i] = tasks[i].String()
+	}
+	w.WriteAll(strs)
+}
+
+// func DeleteTast(projectName, arg string) 
+
 func ExtractTasks(projectName string) []Task {
 	data, err := os.ReadFile(projectName)
 	if err != nil {
@@ -55,6 +81,32 @@ func ExtractTasks(projectName string) []Task {
 	return tasks
 }
 
+func PrioritizeTask(projectName, arg string) {
+	taskID, err := strconv.Atoi(arg)
+	if err != nil {
+		panic(err)
+	}
+
+	file, err := os.OpenFile(projectName, os.O_WRONLY, 0600)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	w := csv.NewWriter(file)
+
+	tasks := ExtractTasks(projectName)
+	tasks[taskID-1].Prioritized = !tasks[taskID-1].Prioritized
+	
+	strs := make([][]string, len(tasks))
+	for i := range tasks {
+		strs[i] = tasks[i].String()
+	}
+	w.WriteAll(strs)
+}
+
+// func SwitchProject(projectName string)
+
 func WriteNewTask(task Task, projectName string) {
 	file, err := os.OpenFile(projectName, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	if err != nil {
@@ -72,44 +124,6 @@ func WriteNewTask(task Task, projectName string) {
 	w.Flush()
 }
 
-func CompleteTask(taskId int, projectName string) {
-	file, err := os.OpenFile(projectName, os.O_WRONLY, 0600)
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-
-	w := csv.NewWriter(file)
-
-	tasks := ExtractTasks(projectName)
-	tasks[taskId-1].Completed = true
-	
-	strs := make([][]string, len(tasks))
-	for i := range tasks {
-		strs[i] = tasks[i].String()
-	}
-	w.WriteAll(strs)
-}
-
-func PrioritizeTask(taskId int, projectName string) {
-	file, err := os.OpenFile(projectName, os.O_WRONLY, 0600)
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-
-	w := csv.NewWriter(file)
-
-	tasks := ExtractTasks(projectName)
-	tasks[taskId-1].Prioritized = !tasks[taskId-1].Prioritized
-	
-	strs := make([][]string, len(tasks))
-	for i := range tasks {
-		strs[i] = tasks[i].String()
-	}
-	w.WriteAll(strs)
-}
-
 // goal --help output, very similar to "go help"
 /*
 todo is a tool to help manage tasks
@@ -121,12 +135,11 @@ The commands are:
 	new			create a new task
 	complete	complete a new task
 	prioritize	prioritize a task
+	switch		switch current project
 
 Commands coming soon:
-	switch		switch current project
 	delete		delete a task
 */
-
 func HelpUser() string {
-	return "todo is a tool to help manage tasks\n\nUsage:\n\ttodo <command> [arguments]\n\nThe commands are:\n\tnew\t\tcreate a new task\n\tcomplete\tcomplete a new task\n\tprioritize\tprioritize a task\n\nCommand(s) coming soon:\n\tswitch\t\tswitch current project\n\tdelete\t\tdelete a task\n"
+	return "todo is a tool to help manage tasks\n\nUsage:\n\ttodo <command> [arguments]\n\nThe commands are:\n\tnew\t\tcreate a new task\n\tcomplete\tcomplete a new task\n\tprioritize\tprioritize a task\n\tswitch\t\tswitch current project\n\nCommand(s) coming soon:\n\tdelete\t\tdelete a task\n"
 }
