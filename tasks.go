@@ -23,8 +23,8 @@ func (t Task) String() []string {
 	return []string{instruction, priority, completed}
 }
 
-func ExtractTasks(fileName string) []Task {
-	data, err := os.ReadFile(fileName)
+func ExtractTasks(projectName string) []Task {
+	data, err := os.ReadFile(projectName)
 	if err != nil {
 		panic(err)
 	}
@@ -55,8 +55,8 @@ func ExtractTasks(fileName string) []Task {
 	return tasks
 }
 
-func WriteNewTask(task Task, fileName string) {
-	file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+func WriteNewTask(task Task, projectName string) {
+	file, err := os.OpenFile(projectName, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	if err != nil {
 		panic(err)
 	}
@@ -72,8 +72,8 @@ func WriteNewTask(task Task, fileName string) {
 	w.Flush()
 }
 
-func CompleteTask(taskId int, fileName string) {
-	file, err := os.OpenFile(fileName, os.O_WRONLY, 0600)
+func CompleteTask(taskId int, projectName string) {
+	file, err := os.OpenFile(projectName, os.O_WRONLY, 0600)
 	if err != nil {
 		panic(err)
 	}
@@ -81,7 +81,7 @@ func CompleteTask(taskId int, fileName string) {
 
 	w := csv.NewWriter(file)
 
-	tasks := ExtractTasks(fileName)
+	tasks := ExtractTasks(projectName)
 	tasks[taskId-1].Completed = true
 	
 	strs := make([][]string, len(tasks))
@@ -91,8 +91,8 @@ func CompleteTask(taskId int, fileName string) {
 	w.WriteAll(strs)
 }
 
-func PrioritizeTask(taskId int, fileName string) {
-	file, err := os.OpenFile(fileName, os.O_WRONLY, 0600)
+func PrioritizeTask(taskId int, projectName string) {
+	file, err := os.OpenFile(projectName, os.O_WRONLY, 0600)
 	if err != nil {
 		panic(err)
 	}
@@ -100,7 +100,7 @@ func PrioritizeTask(taskId int, fileName string) {
 
 	w := csv.NewWriter(file)
 
-	tasks := ExtractTasks(fileName)
+	tasks := ExtractTasks(projectName)
 	tasks[taskId-1].Prioritized = !tasks[taskId-1].Prioritized
 	
 	strs := make([][]string, len(tasks))
@@ -121,7 +121,12 @@ The commands are:
 	new			create a new task
 	complete	complete a new task
 	prioritize	prioritize a task
+
+Commands coming soon:
+	switch		switch current project
+	delete		delete a task
 */
+
 func HelpUser() string {
-	return "todo is a tool to help manage tasks\n\nUsage:\n\ttodo <command> [arguments]\n\nThe commands are:\n\tnew\t\tcreate a new task\n\tcomplete\tcomplete a new task\n\tprioritize\tprioritize a task\n"
+	return "todo is a tool to help manage tasks\n\nUsage:\n\ttodo <command> [arguments]\n\nThe commands are:\n\tnew\t\tcreate a new task\n\tcomplete\tcomplete a new task\n\tprioritize\tprioritize a task\n\nCommand(s) coming soon:\n\tswitch\t\tswitch current project\n\tdelete\t\tdelete a task\n"
 }

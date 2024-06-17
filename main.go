@@ -1,45 +1,56 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
 )
 
 func main() {
-	const project = "project2.csv"
-	// check if the user passed any args
-	if len(os.Args) > 1 {
-		// check which command the user entered
-		newArgIndex := CheckArg("new", 1)
-		if newArgIndex > 0 {
-			WriteNewTask(Task{Instruction: os.Args[newArgIndex+1], Prioritized: false, Completed: false}, project)
-		}
+	userConfigDir := ConfigDir()
 
-		completeArgIndex := CheckArg("complete", 1)
-		if completeArgIndex > 0 {
-			taskID, err := strconv.Atoi(os.Args[2])
-			if err != nil {
-				panic(err)
-			}
-			CompleteTask(taskID, project)
+	err := CheckForConfig(userConfigDir)
+	if err != nil {
+		if err.Error() == "config not found" {
+			CreateConfig(userConfigDir)
+		} else {
+			panic(err)
 		}
+	}
 
-		prioritizeArgIndex := CheckArg("prioritize", 1)
-		if prioritizeArgIndex > 0 {
-			taskID, err := strconv.Atoi(os.Args[2])
-			if err != nil {
-				panic(err)
-			}
-			PrioritizeTask(taskID, project)
+	configBytes, err := os.ReadFile(userConfigDir + "config.json")
+	if err != nil {
+		panic(err)
+	}
+
+	configData := new(ConfigData)
+	json.Unmarshal(configBytes, configData)
+	project := configData.CurrentProject
+
+	command := GetArg(1)
+	switch command {
+	case "new":
+		WriteNewTask(Task{Instruction: GetArg(2), Prioritized: false, Completed: false}, project)
+	case "complete":
+		taskID, err := strconv.Atoi(os.Args[2])
+		if err != nil {
+			panic(err)
 		}
-
-		helpArgIndex := CheckArg("help", 1)
-		if helpArgIndex > 0 {
-			HelpUser()
+		CompleteTask(taskID, project)
+	case "prioritize":
+		taskID, err := strconv.Atoi(GetArg(2))
+		if err != nil {
+			panic(err)
 		}
-
-	} else {
+		PrioritizeTask(taskID, project)
+	case "help":
+		fmt.Println(HelpUser())
+	// case "switch":
+	// 	break
+	// case "delete":
+	// 	break
+	default:
 		tasks := ExtractTasks(project)
 		if len(tasks) < 1 {
 			fmt.Println("-----ALL TASKS COMPLETED-----")
