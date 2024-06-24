@@ -46,14 +46,18 @@ func main() {
 			panic(err)
 		}
 		SwitchProject(projectName, configBytes)
-	// case "delete":
-	// 	break
+	case "delete":
+		taskID, err := GetArg(2)
+		if err != nil {
+			panic(err)
+		}
+		DeleteTask(project, taskID)
 	default:
 		tasks := ExtractTasks(project)
 		if len(tasks) < 1 {
-			fmt.Println("-----ALL TASKS COMPLETED-----")
+			fmt.Printf("-----ALL TASKS COMPLETED-----\n")
 		} else {
-			fmt.Println("-----TODO-----")
+			fmt.Printf("-----TODO-----\n")
 			for i, v := range tasks {
 				if !v.Completed && v.Prioritized {
 					fmt.Println("*", i+1, v.Instruction)

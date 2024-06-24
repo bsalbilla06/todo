@@ -8,7 +8,6 @@ import (
 	"strconv"
 )
 
-// Since taskID is just the tasks line number, there is no reason to store it
 type Task struct {
 	Instruction string
 	Prioritized	bool
@@ -46,8 +45,6 @@ func CompleteTask(projectName, arg string) {
 	}
 	w.WriteAll(strs)
 }
-
-// func DeleteTast(projectName, arg string) 
 
 func ExtractTasks(projectName string) []Task {
 	data, err := os.ReadFile(projectName)
@@ -105,8 +102,6 @@ func PrioritizeTask(projectName, arg string) {
 	w.WriteAll(strs)
 }
 
-// func SwitchProject(projectName string)
-
 func WriteNewTask(task Task, projectName string) {
 	file, err := os.OpenFile(projectName, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	if err != nil {
@@ -124,7 +119,32 @@ func WriteNewTask(task Task, projectName string) {
 	w.Flush()
 }
 
-// goal --help output, very similar to "go help"
+func DeleteTask(projectName, arg string) {
+	taskID, err := strconv.Atoi(arg)
+	if err != nil {
+		panic(err)
+	}
+	taskID--
+
+	tasks := ExtractTasks(projectName)
+	tasks = append(tasks[:taskID], tasks[taskID+1:]...)
+
+	file, err := os.OpenFile(projectName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	w := csv.NewWriter(file)
+	defer w.Flush()
+
+    for _, task := range tasks {
+        if err := w.Write(task.String()); err != nil {
+			panic(err)
+        }
+    }
+}
+
 /*
 todo is a tool to help manage tasks
 
@@ -136,10 +156,8 @@ The commands are:
 	complete	complete a new task
 	prioritize	prioritize a task
 	switch		switch current project
-
-Commands coming soon:
 	delete		delete a task
 */
 func HelpUser() string {
-	return "todo is a tool to help manage tasks\n\nUsage:\n\ttodo <command> [arguments]\n\nThe commands are:\n\tnew\t\tcreate a new task\n\tcomplete\tcomplete a new task\n\tprioritize\tprioritize a task\n\tswitch\t\tswitch current project\n\nCommand(s) coming soon:\n\tdelete\t\tdelete a task\n"
+	return "todo is a tool to help manage tasks\n\nUsage:\n\ttodo <command> [arguments]\n\nThe commands are:\n\tnew\t\tcreate a new task\n\tcomplete\tcomplete a new task\n\tprioritize\tprioritize a task\n\tswitch\t\tswitch current project\n\tdelete\t\tdelete a task\n"
 }
